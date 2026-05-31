@@ -35,6 +35,7 @@ Route::post('/sala/atualizar/{id}', [AdminController::class, 'atualizarSala'])->
         Route::get('/reservas', [AdminController::class, 'listarReservasPendentes'])->name('admin.reservas');
         Route::get('/historico-completo', [AdminController::class, 'historicoGeral'])->name('admin.historico');
         Route::post('/reserva/status/{id}/{status}', [AdminController::class, 'mudarStatusReserva'])->name('admin.reserva.status');
+        Route::post('/admin/reservas/status/{id}', [AdminController::class, 'mudarStatusReserva'])->name('reserva.mudarStatus');
     });
 
     Route::prefix('professor')->group(function () {

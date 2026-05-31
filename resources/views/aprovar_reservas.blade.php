@@ -1,5 +1,4 @@
 @extends('layouts.app')
-
 @section('content')
 <div class="container-fluid">
     <div class="mb-4">
@@ -11,47 +10,39 @@
         <div class="alert alert-success border-0 shadow-sm mb-4">{{ session('success') }}</div>
     @endif
 
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
-            <table class="table table-hover m-0">
-                <thead class="table-light">
-                    <tr>
-                        <th class="px-4">Professor</th>
-                        <th>Sala</th>
-                        <th>Data</th>
-                        <th>Período</th>
-                        <th class="text-center">Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($reservas as $reserva)
-                        <tr>
-                            <td class="px-4 align-middle">
-                                <div class="fw-bold">{{ $reserva->user->name ?? 'Usuário' }}</div>
-                                <small class="text-muted">{{ $reserva->user->email ?? '' }}</small>
-                            </td>
-                            <td class="align-middle">{{ $reserva->sala->nome ?? 'N/A' }}</td>
-                            <td class="align-middle">{{ date('d/m/Y', strtotime($reserva->data_reserva)) }}</td>
-                            <td class="align-middle">{{ $reserva->periodo }}</td>
-                            <td class="text-center align-middle">
-                                <form action="{{ route('admin.reserva.status', [$reserva->id, 'aprovada']) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    <button class="btn btn-sm btn-success fw-bold px-3 me-1">APROVAR</button>
-                                </form>
-                                <form action="{{ route('admin.reserva.status', [$reserva->id, 'recusada']) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    <button class="btn btn-sm btn-outline-danger fw-bold px-3">RECUSAR</button>
-                                </form>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" class="text-center py-5 text-muted">Não há solicitações aguardando aprovação.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+    @forelse($reservas as $reserva)
+        <div class="card shadow-sm border-0 mb-4" style="border-radius: 15px;">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-3">
+                        <div class="fw-bold">{{ $reserva->user->name }}</div>
+                        <small class="text-muted">{{ $reserva->user->email }}</small>
+                    </div>
+                    <div class="col-md-2"><strong>{{ $reserva->sala->nome }}</strong></div>
+                    <div class="col-md-2">{{ date('d/m/Y', strtotime($reserva->data_reserva)) }}</div>
+                    <div class="col-md-2 text-muted">{{ $reserva->periodo }}</div>
+                    <div class="col-md-3 text-end">
+                        <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{$reserva->id}}">Ver Detalhes/Responder</button>
+                    </div>
+                </div>
+                
+                <div class="collapse mt-3" id="collapse{{$reserva->id}}">
+                    <div class="bg-light p-3 rounded">
+                        <p><strong>Comentário do Professor:</strong> {{ $reserva->comentario_professor ?? 'Nenhum' }}</p>
+                        <form action="{{ route('reserva.mudarStatus', $reserva->id) }}" method="POST">
+                            @csrf
+                            <textarea name="comentario_adm" class="form-control mb-2" placeholder="Sua resposta ao professor (opcional)..."></textarea>
+                            <div class="d-flex gap-2">
+                                <button type="submit" name="status" value="aprovada" class="btn btn-success fw-bold">APROVAR</button>
+                                <button type="submit" name="status" value="rejeitada" class="btn btn-danger fw-bold">RECUSAR</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
+    @empty
+        <div class="text-center py-5 text-muted">Não há solicitações pendentes.</div>
+    @endforelse
 </div>
 @endsection

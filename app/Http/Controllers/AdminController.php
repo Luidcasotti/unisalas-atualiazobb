@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\{Hash, Auth, DB};
 
 class AdminController extends Controller 
 {
-    // --- DASHBOARD ADMIN ---
     public function index() {
         return view('admin_dashboard', [
             'totalUsuarios' => User::count(),
@@ -19,7 +18,6 @@ class AdminController extends Controller
         ]);
     }
 
-    // --- GESTÃO DE USUÁRIOS ---
     public function listarUsuarios() { return view('gerenciar_usuarios', ['usuarios' => User::all()]); }
     public function novoUsuario() { return view('cadastrar_usuario'); }
     public function salvarUsuario(Request $request) {
@@ -28,7 +26,6 @@ class AdminController extends Controller
     }
     public function excluirUsuario($id) { User::findOrFail($id)->delete(); return back(); }
 
-    // --- GESTÃO DE BLOCOS E SALAS ---
     public function listarBlocosSalas() { return view('gerenciar-blocos-salas', ['blocos' => Bloco::with('salas')->get()]); }
     public function cadastrarBloco() { return view('cadastrar_bloco'); }
     public function salvarBloco(Request $request) { Bloco::create(['nome' => $request->nome, 'cor' => $request->cor]); return redirect()->route('admin.blocos'); }
@@ -37,7 +34,6 @@ class AdminController extends Controller
     public function excluirBloco($id) { Bloco::findOrFail($id)->delete(); return back(); }
     public function excluirSala($id) { Sala::findOrFail($id)->delete(); return back(); }
     
-    // --- MÉTODOS DE SALA (OBSERVAÇÃO) ---
     public function novaSala($bloco_id) { return view('cadastrar_sala', ['bloco_id' => $bloco_id]); }
     public function salvarSala(Request $request) {
         Sala::create(['bloco_id' => $request->bloco_id, 'nome' => $request->nome, 'observacao' => $request->observacao]);
@@ -49,18 +45,32 @@ class AdminController extends Controller
         return redirect()->route('admin.blocos');
     }
 
-    // --- RESERVAS E STATUS (ADMIN) ---
-    public function listarReservasPendentes() { return view('aprovar_reservas', ['reservas' => Reserva::where('status', 'pendente')->with(['user', 'sala'])->get()]); }
-    public function mudarStatusReserva($id, $status) { Reserva::findOrFail($id)->update(['status' => $status]); return back(); }
+    public function listarReservasPendentes() {
+        // APROVAÇÃO AUTOMÁTICA DE 24H
+        Reserva::where('status', 'pendente')
+            ->where('created_at', '<=', now()->subHours(24))
+            ->update([
+                'status' => 'aprovada', 
+                'comentario_adm' => 'Aprovado automaticamente (timeout 24h).'
+            ]);
+
+        return view('aprovar_reservas', ['reservas' => Reserva::where('status', 'pendente')->with(['user', 'sala'])->get()]); 
+    }
+
+    public function mudarStatusReserva(Request $request, $id) { 
+        Reserva::findOrFail($id)->update([
+            'status' => $request->status, 
+            'comentario_adm' => $request->comentario_adm
+        ]); 
+        return back(); 
+    }
     
-    // --- HISTÓRICO GERAL ---
     public function historicoGeral(Request $request) {
         $query = Reserva::query()->with(['user', 'sala']);
         if ($request->has('data') && $request->data != '') { $query->where('data_reserva', $request->data); }
         return view('admin_historico', ['reservas' => $query->latest()->get()]);
     }
 
-    // --- PAINEL DO PROFESSOR ---
     public function painelProfessor() {
         $user = Auth::user();
         $minhasReservas = Reserva::where('user_id', $user->id)->get();
@@ -77,7 +87,6 @@ class AdminController extends Controller
     public function solicitarReserva() { return view('nova_reserva', ['blocos' => Bloco::all()]); }
     public function professorHistorico() { return view('professor_historico', ['reservas' => Reserva::where('user_id', Auth::id())->with('sala')->get()]); }
 
-    // --- LÓGICA DE RESERVA ---
     public function getSalasPorBloco($bloco_id) { return response()->json(Sala::where('bloco_id', $bloco_id)->get()); }
     public function verificarDisponibilidade(Request $request) {
         $existe = Reserva::where('sala_id', $request->sala_id)->where('data_reserva', $request->data)->where('periodo', $request->periodo)->where('status', 'aprovada')->exists();
@@ -85,7 +94,14 @@ class AdminController extends Controller
     }
     public function salvarReserva(Request $request) { 
         $request->validate(['sala_id' => 'required', 'data_reserva' => 'required|after_or_equal:today', 'periodo' => 'required']);
-        Reserva::create(['user_id' => Auth::id(), 'sala_id' => $request->sala_id, 'data_reserva' => $request->data_reserva, 'periodo' => $request->periodo, 'status' => 'pendente']);
+        Reserva::create([
+            'user_id' => Auth::id(), 
+            'sala_id' => $request->sala_id, 
+            'data_reserva' => $request->data_reserva, 
+            'periodo' => $request->periodo, 
+            'status' => 'pendente',
+            'comentario_professor' => $request->comentario_professor
+        ]);
         return redirect()->route('professor.reservas')->with('success', 'Solicitação enviada!');
     }
     public function desistirReserva($id) {

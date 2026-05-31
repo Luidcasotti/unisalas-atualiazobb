@@ -42,6 +42,11 @@
                         </div>
                     </div>
 
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-uppercase text-muted">Observações para o ADM (Opcional)</label>
+                        <textarea name="comentario_professor" class="form-control border-0 shadow-sm" style="background: #f8f9fa; border-radius: 12px;" rows="2" placeholder="Ex: Preciso de projetor..."></textarea>
+                    </div>
+
                     <div id="statusReserva" class="mb-4 p-3 rounded-3 text-center fw-bold" style="display:none;"></div>
 
                     <button type="submit" id="btnEnviar" class="btn btn-lg w-100 text-white shadow-sm fw-bold py-3" style="background: #7010a8; border-radius: 15px;" disabled>
@@ -77,13 +82,10 @@ document.getElementById('sala_id').addEventListener('change', function() {
     const infoDiv = document.getElementById('infoSala');
     const card = document.getElementById('cardDescricao');
     const sala = window.listaSalas.find(s => s.id == this.value);
-    
     if(sala && sala.observacao) {
         card.style.display = 'block';
         infoDiv.innerHTML = sala.observacao;
-    } else { 
-        card.style.display = 'none'; 
-    }
+    } else { card.style.display = 'none'; }
     verificar();
 });
 
@@ -94,14 +96,12 @@ async function verificar() {
     const msg = document.getElementById('statusReserva');
     const btn = document.getElementById('btnEnviar');
     if(!sala || !data || !periodo) return;
-    
     const res = await fetch(`/professor/verificar?sala_id=${sala}&data=${data}&periodo=${periodo}`);
     const json = await res.json();
-    
     msg.style.display = 'block';
     if(json.disponivel) {
         msg.className = 'my-3 p-3 rounded-3 text-center fw-bold bg-white text-success border border-success';
-        msg.innerHTML = '<i class="fas fa-check-circle me-2"></i> Sala disponível para este período';
+        msg.innerHTML = '<i class="fas fa-check-circle me-2"></i> Sala disponível';
         btn.disabled = false;
     } else {
         msg.className = 'my-3 p-3 rounded-3 text-center fw-bold bg-white text-danger border border-danger';
