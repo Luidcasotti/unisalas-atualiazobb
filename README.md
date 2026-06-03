@@ -74,13 +74,15 @@ DB_PASSWORD=
 
 Se o seu MySQL tiver senha, coloque a senha em `DB_PASSWORD`.
 
+Importante: o banco de dados do desenvolvedor nao vai junto para o GitHub. A pessoa que baixar o projeto precisa criar um banco vazio na propria maquina. Depois, o Laravel cria as tabelas e os usuarios iniciais usando os comandos abaixo.
+
 ### 5. Criar as tabelas e usuarios iniciais
 
 ```bash
 php artisan migrate --seed
 ```
 
-Esse comando cria as tabelas do banco e tambem cadastra usuarios de teste.
+Esse comando cria as tabelas do banco e tambem cadastra os usuarios de teste para conseguir fazer login.
 
 ### 6. Rodar o projeto
 
