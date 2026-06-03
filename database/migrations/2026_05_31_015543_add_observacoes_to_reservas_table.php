@@ -6,24 +6,27 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('reservas', function (Blueprint $table) {
-            $table->text('comentario_professor')->nullable();
-            $table->text('comentario_adm')->nullable();
+            if (!Schema::hasColumn('reservas', 'comentario_professor')) {
+                $table->text('comentario_professor')->nullable();
+            }
+            if (!Schema::hasColumn('reservas', 'comentario_adm')) {
+                $table->text('comentario_adm')->nullable();
+            }
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('reservas', function (Blueprint $table) {
-            $table->dropColumn(['comentario_professor', 'comentario_adm']);
+            if (Schema::hasColumn('reservas', 'comentario_professor')) {
+                $table->dropColumn('comentario_professor');
+            }
+            if (Schema::hasColumn('reservas', 'comentario_adm')) {
+                $table->dropColumn('comentario_adm');
+            }
         });
     }
 };

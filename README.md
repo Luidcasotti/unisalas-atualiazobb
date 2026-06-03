@@ -1,163 +1,154 @@
+# UniSalas
 
-### 3. Configurar o Ambiente (.env)
-Copie o arquivo de exemplo e configure suas credenciais do banco de dados:
+Sistema web para reserva e gerenciamento de salas, feito em Laravel. O projeto permite que administradores cadastrem usuarios, blocos e salas, aprovem reservas e acompanhem o historico. Professores podem solicitar reservas, acompanhar pedidos e cancelar solicitacoes.
+
+## Tecnologias
+
+- PHP 8.2+
+- Laravel 12
+- MySQL ou MariaDB
+- Composer
+- Node.js e NPM
+- Vite
+
+## Como abrir o projeto pela primeira vez
+
+### 1. Clonar o repositorio
+
+```bash
+git clone https://github.com/Luidcasotti/unisalas-atualiazobb.git
+cd unisalas-atualiazobb
+```
+
+Se voce estiver usando o XAMPP, deixe a pasta do projeto dentro de:
+
+```text
+C:\xampp\htdocs\
+```
+
+### 2. Instalar as dependencias
+
+```bash
+composer install
+npm install
+```
+
+### 3. Criar o arquivo de ambiente
+
+Copie o arquivo de exemplo:
+
+```bash
+copy .env.example .env
+```
+
+No Linux ou macOS:
+
 ```bash
 cp .env.example .env
-Abra o arquivo .env no VS Code e ajuste:
+```
 
-Plaintext
-DB_DATABASE=reserva_salas
-DB_USERNAME=seu_usuario
-DB_PASSWORD=sua_senha
-4. Gerar Chave da Aplicação e Criar Banco
-Bash
+Depois gere a chave da aplicacao:
+
+```bash
 php artisan key:generate
-php artisan migrate
-5. Iniciar o Servidor
-Bash
+```
+
+### 4. Configurar o banco de dados
+
+Abra o XAMPP e inicie o Apache e o MySQL. Depois acesse o phpMyAdmin e crie um banco com o nome:
+
+```text
+reserva_salas
+```
+
+No arquivo `.env`, confira se as configuracoes estao assim:
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=reserva_salas
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+Se o seu MySQL tiver senha, coloque a senha em `DB_PASSWORD`.
+
+### 5. Criar as tabelas e usuarios iniciais
+
+```bash
+php artisan migrate --seed
+```
+
+Esse comando cria as tabelas do banco e tambem cadastra usuarios de teste.
+
+### 6. Rodar o projeto
+
+Em um terminal, rode o Laravel:
+
+```bash
 php artisan serve
-Acesse: http://127.0.0.1:8000
+```
 
-👤 Como Acessar (Login e Perfis)
-O sistema possui um simulador de perfis (Admin e Professor):
+Em outro terminal, rode o Vite:
 
-Perfil Administrador: Acesse /admin/dashboard para gerenciar usuários, blocos e aprovar reservas.
+```bash
+npm run dev
+```
 
-Perfil Professor: Acesse /professor/painel para solicitar novas reservas e cancelar pedidos.
+Depois acesse:
 
-Alternar Perfil: Use o botão na barra lateral para trocar de perfil rapidamente.
+```text
+http://127.0.0.1:8000
+```
 
-📌 Funcionalidades Principais
-[x] Cadastro de Usuários e Gestão de Permissões.
+## Login de teste
 
-[x] Gerenciamento de Blocos e Salas.
+Administrador:
 
-[x] Validação de conflito de horários.
+```text
+E-mail: l@gmail.com
+Senha: 12345678
+```
 
-[x] Painel de Aprovação de Reservas.
+Professor:
 
-[x] Opção de Desistir da reserva para Professores.
+```text
+E-mail: professor@unisalas.local
+Senha: 12345678
+```
 
-[x] Exclusão em cascata (Segurança de banco de dados).
+## Funcionalidades
+
+- Login com perfil de administrador e professor
+- Cadastro e gerenciamento de usuarios
+- Cadastro e gerenciamento de blocos e salas
+- Controle de salas e blocos em manutencao
+- Solicitacao de reservas por professores
+- Aprovacao, cancelamento e historico de reservas
+- Verificacao de conflito de horarios
+- Avisos e mensagens internas
+
+## Comandos uteis
+
+Limpar cache do Laravel:
+
+```bash
+php artisan optimize:clear
+```
+
+Rodar os testes:
+
+```bash
+php artisan test
+```
+
+Gerar os arquivos finais do frontend:
+
+```bash
+npm run build
+```
+
+## Autor
 
 Desenvolvido por Luid Casotti.
-
-
-### 💡 Dica de Ouro:
-Se você for gravar o vídeo para o seu professor ou para o portfólio, use esse README como o seu "roteiro". Comece mostrando o README e depois mostre o sistema funcionando seguindo exatamente esses tópicos.
-
-**Quer que eu te ajude a criar uma descrição curta para você colocar na "Bio" do
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# 🏫 UniNorte Salas - Sistema de Gerenciamento de Reservas
-
-O **UniNorte Salas** é uma plataforma web desenvolvida para facilitar o agendamento de salas e laboratórios em instituições de ensino. O sistema permite que administradores gerenciem a infraestrutura e que professores solicitem reservas de forma organizada, evitando conflitos de horários.
-
----
-
-## 🚀 Tecnologias Utilizadas
-
-* **Framework:** [Laravel 10+](https://laravel.com/)
-* **Linguagem:** PHP 8.2+
-* **Banco de Dados:** MySQL / MariaDB
-* **Frontend:** Blade Templates, Bootstrap 5 e FontAwesome (ícones).
-
----
-
-## 🛠️ Como Rodar o Projeto Localmente
-
-Siga os passos abaixo para configurar o ambiente em sua máquina:
-
-### 1. Clonar o Repositório
-```bash
-git clone [https://github.com/SEU_USUARIO/uninorte-salas.git](https://github.com/SEU_USUARIO/uninorte-salas.git)
-cd uninorte-salas

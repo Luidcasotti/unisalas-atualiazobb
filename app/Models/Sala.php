@@ -10,7 +10,15 @@ class Sala extends Model
     use HasFactory;
 
     // Atualizado: Removido capacidade, adicionado observacao
-    protected $fillable = ['nome', 'observacao', 'bloco_id'];
+    protected $fillable = [
+        'nome',
+        'observacao',
+        'bloco_id',
+        'manutencao_ativa',
+        'manutencao_fim',
+        'manutencao_indeterminada',
+        'manutencao_aviso',
+    ];
 
     // Relacionamento com Bloco
     public function bloco() {

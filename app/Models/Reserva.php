@@ -16,6 +16,8 @@ class Reserva extends Model
         'data_reserva', 
         'periodo', 
         'status', 
+        'recorrente',
+        'grupo_recorrencia',
         'comentario_professor', 
         'comentario_adm'
     ];

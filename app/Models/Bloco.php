@@ -10,7 +10,14 @@ class Bloco extends Model
     use HasFactory;
 
     // Campos que podem ser preenchidos no banco (adicionado 'cor')
-    protected $fillable = ['nome', 'cor'];
+    protected $fillable = [
+        'nome',
+        'cor',
+        'manutencao_ativa',
+        'manutencao_fim',
+        'manutencao_indeterminada',
+        'manutencao_aviso',
+    ];
 
     /**
      * Relacionamento: Um bloco possui muitas salas.
