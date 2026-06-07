@@ -142,6 +142,7 @@ php artisan optimize:clear
 Rodar os testes:
 
 ```bash
+
 php artisan test
 ```
 
@@ -154,3 +155,6 @@ npm run build
 ## Autor
 
 Desenvolvido por Luid Casotti.
+link do video n1 https://drive.google.com/drive/home?hl=pt-br    
+link do video n2 https://drive.google.com/file/d/1uIr86Z-83yYcm6SW2W9cXOUnU_RcvXvr/view?usp=drivesdk
+
