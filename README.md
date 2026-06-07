@@ -157,4 +157,5 @@ npm run build
 Desenvolvido por Luid Casotti.
 link do video n1 https://drive.google.com/drive/home?hl=pt-br    
 link do video n2 https://drive.google.com/file/d/1uIr86Z-83yYcm6SW2W9cXOUnU_RcvXvr/view?usp=drivesdk
+link pith https://drive.google.com/file/d/1yBMjEVrm65vdn-6OnxqJyMwqEoQxXH_b/view?usp=sharing
 
