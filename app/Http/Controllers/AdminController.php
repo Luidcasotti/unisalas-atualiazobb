@@ -287,8 +287,32 @@ class AdminController extends Controller
     public function salvarBloco(Request $request) { Bloco::create(['nome' => $request->nome, 'cor' => $request->cor]); return redirect()->route('admin.blocos'); }
     public function editarBloco($id) { return view('admin.blocos-salas.blocos-edit', ['bloco' => Bloco::findOrFail($id)]); }
     public function atualizarBloco(Request $request, $id) { Bloco::findOrFail($id)->update(['nome' => $request->nome, 'cor' => $request->cor]); return redirect()->route('admin.blocos'); }
-    public function excluirBloco($id) { Bloco::findOrFail($id)->delete(); return back(); }
-    public function excluirSala($id) { Sala::findOrFail($id)->delete(); return back(); }
+    public function excluirBloco($id) {
+        $bloco = Bloco::findOrFail($id);
+
+        DB::transaction(function () use ($bloco) {
+            $salaIds = Sala::where('bloco_id', $bloco->id)->pluck('id');
+
+            if ($salaIds->isNotEmpty()) {
+                Reserva::whereIn('sala_id', $salaIds)->delete();
+                Sala::whereIn('id', $salaIds)->delete();
+            }
+
+            $bloco->delete();
+        });
+
+        return back()->with('success', 'Bloco excluido junto com suas salas e reservas vinculadas.');
+    }
+    public function excluirSala($id) {
+        $sala = Sala::findOrFail($id);
+
+        DB::transaction(function () use ($sala) {
+            Reserva::where('sala_id', $sala->id)->delete();
+            $sala->delete();
+        });
+
+        return back()->with('success', 'Sala excluida junto com as reservas vinculadas.');
+    }
     
     public function novaSala($bloco_id) {
         $bloco = Bloco::findOrFail($bloco_id);
