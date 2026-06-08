@@ -128,6 +128,7 @@ CREATE TABLE blocos (
   manutencao_fim DATE NULL,
   manutencao_indeterminada TINYINT(1) NOT NULL DEFAULT 0,
   manutencao_aviso TEXT NULL,
+  arquivado_em TIMESTAMP NULL,
   created_at TIMESTAMP NULL,
   updated_at TIMESTAMP NULL,
   PRIMARY KEY (id)
@@ -143,6 +144,7 @@ CREATE TABLE salas (
   manutencao_fim DATE NULL,
   manutencao_indeterminada TINYINT(1) NOT NULL DEFAULT 0,
   manutencao_aviso TEXT NULL,
+  arquivado_em TIMESTAMP NULL,
   created_at TIMESTAMP NULL,
   updated_at TIMESTAMP NULL,
   PRIMARY KEY (id),

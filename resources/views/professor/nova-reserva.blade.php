@@ -83,13 +83,80 @@
                 <h5 class="fw-bold mb-3"><i class="fas fa-info-circle me-2 text-primary"></i>Detalhes da sala</h5>
                 <div id="infoSala" class="lh-lg text-muted"></div>
             </div>
+
+            <div class="page-card p-4 mt-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div>
+                        <h5 class="fw-bold mb-1">Grade de disponibilidade</h5>
+                        <p class="text-muted small mb-0">Proximos 7 dias da sala selecionada.</p>
+                    </div>
+                    <i class="fas fa-calendar-days text-primary"></i>
+                </div>
+                <div id="gradeDisponibilidade" class="availability-grid-placeholder">
+                    Selecione bloco e sala para visualizar a grade.
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
+<style>
+    .availability-grid {
+        display: grid;
+        gap: 8px;
+    }
+    .availability-day {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(16, 29, 47, 0.72);
+        padding: 10px;
+    }
+    .availability-date {
+        color: var(--text);
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+    }
+    .availability-periods {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+    }
+    .availability-slot {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 7px 5px;
+        text-align: center;
+        font-size: 0.78rem;
+        background: rgba(255,255,255,0.04);
+        cursor: pointer;
+        transition: 0.16s ease;
+    }
+    .availability-slot.available {
+        color: #70e4a2;
+        border-color: rgba(112, 228, 162, 0.38);
+    }
+    .availability-slot.unavailable {
+        color: #ffc767;
+        border-color: rgba(255, 199, 103, 0.38);
+    }
+    .availability-slot:hover {
+        transform: translateY(-1px);
+        background: rgba(29, 155, 240, 0.14);
+    }
+    .availability-grid-placeholder {
+        border: 1px dashed var(--line);
+        border-radius: 8px;
+        padding: 18px;
+        color: var(--muted);
+        text-align: center;
+    }
+</style>
+
 <script>
 window.listaSalas = [];
 window.datasRecorrentes = [];
+const periodosGrade = ['Matutino', 'Vespertino', 'Noturno'];
 const salasPorBlocoUrl = @json(url('/professor/api/salas'));
 const verificarDisponibilidadeUrl = @json(url('/professor/verificar'));
 
@@ -101,6 +168,7 @@ async function carregarSalas(id) {
     salas.forEach(s => html += `<option value="${s.id}">${s.nome}</option>`);
     document.getElementById('sala_id').innerHTML = html;
     document.getElementById('cardDescricao').style.display = 'none';
+    renderizarGradeDisponibilidade();
     verificar();
 }
 
@@ -117,6 +185,7 @@ document.getElementById('sala_id').addEventListener('change', function() {
     }
 
     verificar();
+    renderizarGradeDisponibilidade();
 });
 
 function ativarRecorrencia() {
@@ -134,6 +203,70 @@ async function consultarDisponibilidade(data) {
     const params = new URLSearchParams({ sala_id: sala, data, periodo });
     const res = await fetch(`${verificarDisponibilidadeUrl}?${params.toString()}`);
     return await res.json();
+}
+
+function formatarDataCurta(dataIso) {
+    const data = new Date(dataIso + 'T00:00:00');
+    return data.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' });
+}
+
+function selecionarHorarioGrade(data, periodo) {
+    document.getElementById('data_reserva').value = data;
+    document.getElementById('periodo').value = periodo;
+    document.getElementById('recorrente').value = '0';
+    verificar();
+}
+
+async function renderizarGradeDisponibilidade() {
+    const sala = document.getElementById('sala_id').value;
+    const grade = document.getElementById('gradeDisponibilidade');
+
+    if (!sala) {
+        grade.className = 'availability-grid-placeholder';
+        grade.innerHTML = 'Selecione bloco e sala para visualizar a grade.';
+        return;
+    }
+
+    grade.className = 'availability-grid-placeholder';
+    grade.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Carregando disponibilidade...';
+
+    const hoje = new Date();
+    const dias = Array.from({ length: 7 }, (_, index) => {
+        const data = new Date(hoje);
+        data.setDate(hoje.getDate() + index);
+        return data.toISOString().slice(0, 10);
+    });
+
+    const linhas = [];
+
+    for (const data of dias) {
+        const slots = [];
+
+        for (const periodo of periodosGrade) {
+            const periodoAtual = document.getElementById('periodo').value;
+            document.getElementById('periodo').value = periodo;
+            const disponibilidade = await consultarDisponibilidade(data);
+            document.getElementById('periodo').value = periodoAtual;
+
+            const disponivel = disponibilidade?.disponivel;
+            slots.push(`
+                <button type="button" class="availability-slot ${disponivel ? 'available' : 'unavailable'}" onclick="selecionarHorarioGrade('${data}', '${periodo}')">
+                    ${periodo}<br>
+                    <strong>${disponivel ? 'Livre' : 'Ocupada'}</strong>
+                </button>
+            `);
+        }
+
+        linhas.push(`
+            <div class="availability-day">
+                <div class="availability-date">${formatarDataCurta(data)}</div>
+                <div class="availability-periods">${slots.join('')}</div>
+            </div>
+        `);
+    }
+
+    grade.className = 'availability-grid';
+    grade.innerHTML = linhas.join('');
 }
 
 async function adicionarDataRecorrente() {

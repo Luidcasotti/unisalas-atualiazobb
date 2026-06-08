@@ -25,7 +25,6 @@ class AdminController extends Controller
     private function limparDadosAntigos(): void
     {
         MensagemDireta::where('created_at', '<', now()->subMonths(6))->delete();
-        Reserva::where('data_reserva', '<', now()->subMonths(6)->toDateString())->delete();
     }
 
     private function manutencaoAtivaParaData(Sala $sala, string $data): ?string
@@ -84,6 +83,10 @@ class AdminController extends Controller
 
     private function cancelarConflitosDaReserva(Reserva $reserva): void
     {
+        $reserva->loadMissing(['sala.bloco']);
+        $local = trim(($reserva->sala->bloco->nome ?? 'Bloco nao informado') . ' - ' . ($reserva->sala->nome ?? 'Sala nao informada'));
+        $data = $reserva->data_reserva ? date('d/m/Y', strtotime($reserva->data_reserva)) : 'data nao informada';
+
         Reserva::where('id', '!=', $reserva->id)
             ->where('sala_id', $reserva->sala_id)
             ->where('data_reserva', $reserva->data_reserva)
@@ -91,7 +94,7 @@ class AdminController extends Controller
             ->whereIn('status', ['pendente', 'em_analise'])
             ->update([
                 'status' => 'cancelada',
-                'comentario_adm' => 'Sala ocupada nesse horario. Outra solicitacao para essa sala, data e periodo foi aprovada.',
+                'comentario_adm' => "Cancelada automaticamente por conflito: {$local}, em {$data}, no periodo {$reserva->periodo}, foi aprovada para outra solicitacao.",
             ]);
     }
 
@@ -124,12 +127,13 @@ class AdminController extends Controller
 
         if ($concorrente && $recorrente) {
             $concorrente->loadMissing(['user', 'sala']);
+            $concorrente->sala?->loadMissing('bloco');
 
             return [
                 'status' => 'em_analise',
                 'comentario_adm' => 'Conflito nesta data: ja existe uma solicitacao/reserva de ' .
                     ($concorrente->user->name ?? 'outro professor') .
-                    ' para ' . ($concorrente->sala->nome ?? 'esta sala') .
+                    ' para ' . ((optional(optional($concorrente->sala)->bloco)->nome ?? 'bloco nao informado') . ' - ' . ($concorrente->sala->nome ?? 'esta sala')) .
                     ' em ' . date('d/m/Y', strtotime($concorrente->data_reserva)) .
                     ' no periodo ' . $concorrente->periodo .
                     ' com status ' . $concorrente->status . '.',
@@ -137,9 +141,15 @@ class AdminController extends Controller
         }
 
         if ($concorrente) {
+            $concorrente->loadMissing(['user', 'sala.bloco']);
+            $local = ($concorrente->sala->bloco->nome ?? 'Bloco nao informado') . ' - ' . ($concorrente->sala->nome ?? 'Sala nao informada');
+
             return [
                 'status' => 'cancelada',
-                'comentario_adm' => 'Sala ocupada nesse horario. Ja existe uma solicitacao ou reserva para a mesma sala, data e periodo.',
+                'comentario_adm' => 'Reserva cancelada por conflito: ' . $local .
+                    ' ja possui solicitacao/reserva de ' . ($concorrente->user->name ?? 'outro professor') .
+                    ' em ' . date('d/m/Y', strtotime($data)) .
+                    ' no periodo ' . $periodo . '.',
             ];
         }
 
@@ -211,12 +221,40 @@ class AdminController extends Controller
     public function index() {
         $this->limparDadosAntigos();
 
+        $statusResumo = Reserva::select('status', DB::raw('count(*) as total'))
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $salasMaisUsadas = Sala::query()
+            ->select('salas.nome', DB::raw('count(reservas.id) as total'))
+            ->join('reservas', 'reservas.sala_id', '=', 'salas.id')
+            ->where('reservas.status', 'aprovada')
+            ->groupBy('salas.id', 'salas.nome')
+            ->orderByDesc('total')
+            ->limit(5)
+            ->get();
+
+        $blocosMaisUsados = Bloco::query()
+            ->select('blocos.nome', DB::raw('count(reservas.id) as total'))
+            ->join('salas', 'salas.bloco_id', '=', 'blocos.id')
+            ->join('reservas', 'reservas.sala_id', '=', 'salas.id')
+            ->where('reservas.status', 'aprovada')
+            ->groupBy('blocos.id', 'blocos.nome')
+            ->orderByDesc('total')
+            ->limit(5)
+            ->get();
+
         return view('admin.dashboard', [
             'totalUsuarios' => User::count(),
-            'totalSalas' => Sala::count(),
-            'totalBlocos' => Bloco::count(),
+            'totalSalas' => Sala::whereNull('arquivado_em')->count(),
+            'totalBlocos' => Bloco::whereNull('arquivado_em')->count(),
             'reservasPendentes' => Reserva::where('status', 'pendente')->count(),
             'reservasAprovadas' => Reserva::where('status', 'aprovada')->count(),
+            'reservasSemana' => Reserva::whereBetween('data_reserva', [now()->startOfWeek()->toDateString(), now()->endOfWeek()->toDateString()])->count(),
+            'reservasStatusResumo' => $statusResumo,
+            'salasMaisUsadas' => $salasMaisUsadas,
+            'blocosMaisUsados' => $blocosMaisUsados,
+            'solicitacoesPendentesRecentes' => Reserva::whereIn('status', ['pendente', 'em_analise'])->with(['user', 'sala.bloco'])->latest()->limit(5)->get(),
             'avisos' => Aviso::latest()->get(),
             // Adicionado para o botão de mensagens no dashboard
             'mensagensNaoLidas' => MensagemDireta::where('destinatario_id', Auth::id())->where('lida', false)->count()
@@ -276,7 +314,11 @@ class AdminController extends Controller
     }
 
     public function listarBlocosSalas() {
-        $blocos = Bloco::with('salas')->orderBy('nome')->get()->map(function ($bloco) {
+        $blocos = Bloco::whereNull('arquivado_em')
+            ->with(['salas' => fn($query) => $query->whereNull('arquivado_em')])
+            ->orderBy('nome')
+            ->get()
+            ->map(function ($bloco) {
             $bloco->setRelation('salas', $this->ordenarSalas($bloco->salas));
             return $bloco;
         });
@@ -291,27 +333,41 @@ class AdminController extends Controller
         $bloco = Bloco::findOrFail($id);
 
         DB::transaction(function () use ($bloco) {
-            $salaIds = Sala::where('bloco_id', $bloco->id)->pluck('id');
+            $salaIds = Sala::where('bloco_id', $bloco->id)->whereNull('arquivado_em')->pluck('id');
 
             if ($salaIds->isNotEmpty()) {
-                Reserva::whereIn('sala_id', $salaIds)->delete();
-                Sala::whereIn('id', $salaIds)->delete();
+                Reserva::whereIn('sala_id', $salaIds)
+                    ->where('data_reserva', '>=', now()->toDateString())
+                    ->whereIn('status', ['pendente', 'em_analise', 'aprovada'])
+                    ->update([
+                        'status' => 'cancelada',
+                        'comentario_adm' => 'Bloco arquivado pelo administrador. As reservas futuras vinculadas foram canceladas para preservar o historico.',
+                    ]);
+
+                Sala::whereIn('id', $salaIds)->update(['arquivado_em' => now()]);
             }
 
-            $bloco->delete();
+            $bloco->update(['arquivado_em' => now()]);
         });
 
-        return back()->with('success', 'Bloco excluido junto com suas salas e reservas vinculadas.');
+        return back()->with('success', 'Bloco arquivado. Ele saiu da lista ativa, mas o historico de reservas foi preservado.');
     }
     public function excluirSala($id) {
         $sala = Sala::findOrFail($id);
 
         DB::transaction(function () use ($sala) {
-            Reserva::where('sala_id', $sala->id)->delete();
-            $sala->delete();
+            Reserva::where('sala_id', $sala->id)
+                ->where('data_reserva', '>=', now()->toDateString())
+                ->whereIn('status', ['pendente', 'em_analise', 'aprovada'])
+                ->update([
+                    'status' => 'cancelada',
+                    'comentario_adm' => 'Sala arquivada pelo administrador. As reservas futuras vinculadas foram canceladas para preservar o historico.',
+                ]);
+
+            $sala->update(['arquivado_em' => now()]);
         });
 
-        return back()->with('success', 'Sala excluida junto com as reservas vinculadas.');
+        return back()->with('success', 'Sala arquivada. Ela saiu da lista ativa, mas o historico de reservas foi preservado.');
     }
     
     public function novaSala($bloco_id) {
@@ -463,6 +519,26 @@ class AdminController extends Controller
             $query->where('data_reserva', $request->data);
         }
 
+        if ($request->filled('data_inicio')) {
+            $query->where('data_reserva', '>=', $request->data_inicio);
+        }
+
+        if ($request->filled('data_fim')) {
+            $query->where('data_reserva', '<=', $request->data_fim);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('tipo_reserva')) {
+            $query->where('recorrente', $request->tipo_reserva === 'recorrente');
+        }
+
+        if ($request->filled('professor_id')) {
+            $query->where('user_id', $request->professor_id);
+        }
+
         if ($request->filled('bloco_id')) {
             $query->whereHas('sala', function ($salaQuery) use ($request) {
                 $salaQuery->where('bloco_id', $request->bloco_id);
@@ -481,7 +557,9 @@ class AdminController extends Controller
             'reservas' => $query->latest()->get(),
             'blocos' => Bloco::with('salas')->orderBy('nome')->get(),
             'salas' => Sala::with('bloco')->orderBy('nome')->get(),
+            'professores' => User::where('tipo', 'professor')->orderBy('name')->get(),
             'periodos' => Reserva::whereNotNull('periodo')->distinct()->orderBy('periodo')->pluck('periodo'),
+            'statusDisponiveis' => Reserva::whereNotIn('status', ['pendente', 'em_analise'])->distinct()->orderBy('status')->pluck('status'),
         ]);
     }
 
@@ -512,20 +590,29 @@ class AdminController extends Controller
             return $this->salvarReserva($request);
         }
 
-        return view('professor.nova-reserva', ['blocos' => Bloco::orderBy('nome')->get()]);
+        $blocos = Bloco::whereNull('arquivado_em')
+            ->with(['salas' => fn($query) => $query->whereNull('arquivado_em')])
+            ->orderBy('nome')
+            ->get();
+
+        return view('professor.nova-reserva', ['blocos' => $blocos]);
     }
     public function professorHistorico() { return view('professor.historico', ['reservas' => Reserva::where('user_id', Auth::id())->with('sala')->get()]); }
 
-    public function getSalasPorBloco($bloco_id) { return response()->json($this->ordenarSalas(Sala::where('bloco_id', $bloco_id)->get())); }
+    public function getSalasPorBloco($bloco_id) { return response()->json($this->ordenarSalas(Sala::where('bloco_id', $bloco_id)->whereNull('arquivado_em')->get())); }
     public function verificarDisponibilidade(Request $request) {
         $reserva = $this->existeReservaConcorrente((int) $request->sala_id, $request->data, $request->periodo);
+        $reserva?->loadMissing(['user', 'sala.bloco']);
+        $local = $reserva
+            ? (($reserva->sala->bloco->nome ?? 'Bloco nao informado') . ' - ' . ($reserva->sala->nome ?? 'Sala nao informada'))
+            : null;
 
         return response()->json([
             'disponivel' => !$reserva,
             'mensagem' => $reserva
                 ? ($reserva->status === 'manutencao'
                     ? $this->manutencaoAtivaParaData($reserva->sala, $request->data)
-                    : 'Sala indisponivel: ja existe uma solicitacao ou reserva para essa sala, data e periodo.')
+                    : 'Indisponivel: ' . $local . ' ja possui solicitacao/reserva de ' . ($reserva->user->name ?? 'outro professor') . ' em ' . date('d/m/Y', strtotime($request->data)) . ' no periodo ' . $request->periodo . '.')
                 : 'Sala disponivel para solicitacao.',
             'status' => $reserva?->status,
         ]);
@@ -541,6 +628,12 @@ class AdminController extends Controller
             'datas_recorrentes' => [$recorrente ? 'required' : 'nullable', 'array'],
             'datas_recorrentes.*' => ['date', 'after_or_equal:today'],
         ]);
+
+        if (Sala::where('id', $request->sala_id)->whereNotNull('arquivado_em')->exists()) {
+            return back()
+                ->withErrors(['sala_id' => 'Esta sala foi arquivada e nao aceita novas reservas. Escolha outra sala ativa.'])
+                ->withInput();
+        }
 
         $datas = $recorrente
             ? $this->gerarDatasRecorrentes($request->datas_recorrentes ?? [])

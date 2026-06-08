@@ -1,6 +1,17 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $resumoStatus = $reservas->groupBy('status')->map->count();
+    $totalRecorrentes = $reservas->where('recorrente', true)->count();
+    $statusLabels = [
+        'aprovada' => 'Aprovadas',
+        'rejeitada' => 'Rejeitadas',
+        'cancelada' => 'Canceladas',
+        'recusada' => 'Recusadas',
+    ];
+@endphp
+
 <div class="container-fluid py-3">
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
         <div>
@@ -8,16 +19,46 @@
             <h2 class="fw-bold mb-1">Hist&oacute;rico geral</h2>
             <p class="text-muted mb-0">Consulta organizada de reservas por professor, bloco, sala, data, per&iacute;odo e status.</p>
         </div>
-        <span class="data-chip"><i class="fas fa-database"></i>{{ $reservas->count() }} registros sem pendentes</span>
+        <span class="data-chip"><i class="fas fa-database"></i>{{ $reservas->count() }} registros encontrados</span>
+    </div>
+
+    <div class="row g-3 mb-4">
+        @foreach($statusLabels as $status => $label)
+            <div class="col-6 col-lg-3">
+                <div class="metric-card p-3 h-100">
+                    <div class="text-muted small">{{ $label }}</div>
+                    <div class="h3 fw-bold mb-0">{{ $resumoStatus[$status] ?? 0 }}</div>
+                </div>
+            </div>
+        @endforeach
+        <div class="col-6 col-lg-3">
+            <div class="metric-card p-3 h-100">
+                <div class="text-muted small">Recorrentes</div>
+                <div class="h3 fw-bold mb-0">{{ $totalRecorrentes }}</div>
+            </div>
+        </div>
     </div>
 
     <div class="page-card p-3 mb-4">
         <form action="{{ route('admin.historico') }}" method="GET" class="row g-3 align-items-end">
             <div class="col-12 col-md-6 col-xl-2">
-                <label class="form-label">Data</label>
-                <input type="date" name="data" class="form-control" value="{{ request('data') }}">
+                <label class="form-label">De</label>
+                <input type="date" name="data_inicio" class="form-control" value="{{ request('data_inicio', request('data')) }}">
             </div>
-            <div class="col-12 col-md-6 col-xl-3">
+            <div class="col-12 col-md-6 col-xl-2">
+                <label class="form-label">Ate</label>
+                <input type="date" name="data_fim" class="form-control" value="{{ request('data_fim') }}">
+            </div>
+            <div class="col-12 col-md-6 col-xl-2">
+                <label class="form-label">Professor</label>
+                <select name="professor_id" class="form-select">
+                    <option value="">Todos</option>
+                    @foreach($professores as $professor)
+                        <option value="{{ $professor->id }}" @selected(request('professor_id') == $professor->id)>{{ $professor->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-12 col-md-6 col-xl-2">
                 <label class="form-label">Bloco</label>
                 <select name="bloco_id" id="filtroBloco" class="form-select">
                     <option value="">Todos os blocos</option>
@@ -26,7 +67,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-12 col-md-6 col-xl-3">
+            <div class="col-12 col-md-6 col-xl-2">
                 <label class="form-label">Sala</label>
                 <select name="sala_id" id="filtroSala" class="form-select">
                     <option value="">Todas as salas</option>
@@ -44,6 +85,23 @@
                     @foreach($periodos as $periodo)
                         <option value="{{ $periodo }}" @selected(request('periodo') == $periodo)>{{ $periodo }}</option>
                     @endforeach
+                </select>
+            </div>
+            <div class="col-12 col-md-6 col-xl-2">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">Todos</option>
+                    @foreach($statusDisponiveis as $status)
+                        <option value="{{ $status }}" @selected(request('status') == $status)>{{ ucfirst(str_replace('_', ' ', $status)) }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-12 col-md-6 col-xl-2">
+                <label class="form-label">Tipo</label>
+                <select name="tipo_reserva" class="form-select">
+                    <option value="">Todas</option>
+                    <option value="unica" @selected(request('tipo_reserva') === 'unica')>Unicas</option>
+                    <option value="recorrente" @selected(request('tipo_reserva') === 'recorrente')>Recorrentes</option>
                 </select>
             </div>
             <div class="col-6 col-xl-1">
@@ -72,7 +130,12 @@
     <div class="d-grid gap-3">
         @forelse($reservas as $r)
             @php
-                $statusClass = $r->status == 'aprovada' ? 'text-bg-success' : ($r->status == 'pendente' ? 'text-bg-warning' : 'text-bg-danger');
+                $statusClass = match($r->status) {
+                    'aprovada' => 'text-bg-success',
+                    'cancelada' => 'text-bg-secondary',
+                    'rejeitada', 'recusada' => 'text-bg-danger',
+                    default => 'text-bg-info',
+                };
             @endphp
             <div class="page-card p-3">
                 <div class="row g-3 align-items-center">
@@ -104,6 +167,9 @@
 
                     <div class="col-12 col-xl-1 text-xl-end">
                         <span class="badge {{ $statusClass }}">{{ ucfirst($r->status) }}</span>
+                        @if($r->recorrente)
+                            <span class="badge text-bg-info mt-1">Recorrente</span>
+                        @endif
                     </div>
                 </div>
 

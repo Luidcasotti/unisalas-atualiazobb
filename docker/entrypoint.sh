@@ -49,6 +49,7 @@ $stmt = $pdo->prepare("SELECT COUNT(*) FROM information_schema.tables WHERE tabl
 $stmt->execute([$db, "users"]);
 exit((int) $stmt->fetchColumn() > 0 ? 0 : 1);
 '; then
+    php artisan migrate --force --no-interaction
     php artisan db:seed --class=UserAdminSeeder --force --no-interaction
 else
     php artisan migrate --force --no-interaction

@@ -17,6 +17,13 @@ class Bloco extends Model
         'manutencao_fim',
         'manutencao_indeterminada',
         'manutencao_aviso',
+        'arquivado_em',
+    ];
+
+    protected $casts = [
+        'arquivado_em' => 'datetime',
+        'manutencao_ativa' => 'boolean',
+        'manutencao_indeterminada' => 'boolean',
     ];
 
     /**
