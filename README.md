@@ -1,6 +1,32 @@
 # UniSalas
 
-Sistema web para reserva e gerenciamento de salas, feito em Laravel. O projeto permite que administradores cadastrem usuarios, blocos e salas, aprovem reservas e acompanhem o historico. Professores podem solicitar reservas, acompanhar pedidos e cancelar solicitacoes.
+Sistema web para reserva e gerenciamento de salas, desenvolvido em Laravel.
+
+O UniSalas organiza o fluxo de solicitacao, aprovacao e acompanhamento de reservas de salas. Administradores gerenciam usuarios, blocos, salas, manutencoes, avisos e aprovacoes. Professores solicitam reservas, acompanham status, consultam historico e trocam mensagens internas.
+
+## Sumario
+
+- [Funcionalidades](#funcionalidades)
+- [Tecnologias](#tecnologias)
+- [Como rodar localmente](#como-rodar-localmente)
+- [Como rodar no Portainer](#como-rodar-no-portainer)
+- [Login de teste](#login-de-teste)
+- [Comandos uteis](#comandos-uteis)
+- [Documentacao](#documentacao)
+- [Links do projeto](#links-do-projeto)
+
+## Funcionalidades
+
+- Login com perfil de administrador e professor.
+- Cadastro e gerenciamento de usuarios.
+- Cadastro e gerenciamento de blocos e salas.
+- Controle de salas e blocos em manutencao.
+- Solicitacao de reservas por professores.
+- Aprovacao, rejeicao, cancelamento e historico de reservas.
+- Verificacao de conflito de sala, data e periodo.
+- Reservas recorrentes.
+- Avisos e mensagens internas.
+- Suporte a Docker/Portainer na porta `8935`.
 
 ## Tecnologias
 
@@ -10,8 +36,9 @@ Sistema web para reserva e gerenciamento de salas, feito em Laravel. O projeto p
 - Composer
 - Node.js e NPM
 - Vite
+- Docker e Docker Compose
 
-## Como abrir o projeto pela primeira vez
+## Como Rodar Localmente
 
 ### 1. Clonar o repositorio
 
@@ -20,22 +47,22 @@ git clone https://github.com/Luidcasotti/unisalas-atualiazobb.git
 cd unisalas-atualiazobb
 ```
 
-Se voce estiver usando o XAMPP, deixe a pasta do projeto dentro de:
+Se estiver usando XAMPP, deixe a pasta dentro de:
 
 ```text
 C:\xampp\htdocs\
 ```
 
-### 2. Instalar as dependencias
+### 2. Instalar dependencias
 
 ```bash
 composer install
 npm install
 ```
 
-### 3. Criar o arquivo de ambiente
+### 3. Criar o arquivo `.env`
 
-Copie o arquivo de exemplo:
+No Windows:
 
 ```bash
 copy .env.example .env
@@ -53,15 +80,15 @@ Depois gere a chave da aplicacao:
 php artisan key:generate
 ```
 
-### 4. Configurar o banco de dados
+### 4. Configurar o banco
 
-Abra o XAMPP e inicie o Apache e o MySQL. Depois acesse o phpMyAdmin e crie um banco com o nome:
+Inicie Apache e MySQL pelo XAMPP. Crie um banco chamado:
 
 ```text
 reserva_salas
 ```
 
-No arquivo `.env`, confira se as configuracoes estao assim:
+No `.env`, confira:
 
 ```env
 DB_CONNECTION=mysql
@@ -72,39 +99,56 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-Se o seu MySQL tiver senha, coloque a senha em `DB_PASSWORD`.
+Se o seu MySQL tiver senha, preencha `DB_PASSWORD`.
 
-Importante: o banco de dados do desenvolvedor nao vai junto para o GitHub. A pessoa que baixar o projeto precisa criar um banco vazio na propria maquina. Depois, o Laravel cria as tabelas e os usuarios iniciais usando os comandos abaixo.
-
-### 5. Criar as tabelas e usuarios iniciais
+### 5. Criar tabelas e usuarios iniciais
 
 ```bash
 php artisan migrate --seed
 ```
 
-Esse comando cria as tabelas do banco e tambem cadastra os usuarios de teste para conseguir fazer login.
-
 ### 6. Rodar o projeto
 
-Em um terminal, rode o Laravel:
+Em um terminal:
 
 ```bash
 php artisan serve
 ```
 
-Em outro terminal, rode o Vite:
+Em outro terminal:
 
 ```bash
 npm run dev
 ```
 
-Depois acesse:
+Acesse:
 
 ```text
 http://127.0.0.1:8000
 ```
 
-## Login de teste
+## Como Rodar No Portainer
+
+O projeto ja possui `Dockerfile` e `docker-compose.yml`.
+
+No Portainer:
+
+1. Acesse **Stacks**.
+2. Clique em **Add stack**.
+3. Escolha **Repository**.
+4. Informe este repositorio.
+5. Use o arquivo `docker-compose.yml`.
+6. Clique em **Deploy the stack**.
+
+Depois acesse:
+
+```text
+http://IP_DO_SERVIDOR:8935
+```
+
+Mais detalhes em [PORTAINER.md](PORTAINER.md).
+
+## Login De Teste
 
 Administrador:
 
@@ -120,18 +164,7 @@ E-mail: professor@unisalas.local
 Senha: 12345678
 ```
 
-## Funcionalidades
-
-- Login com perfil de administrador e professor
-- Cadastro e gerenciamento de usuarios
-- Cadastro e gerenciamento de blocos e salas
-- Controle de salas e blocos em manutencao
-- Solicitacao de reservas por professores
-- Aprovacao, cancelamento e historico de reservas
-- Verificacao de conflito de horarios
-- Avisos e mensagens internas
-
-## Comandos uteis
+## Comandos Uteis
 
 Limpar cache do Laravel:
 
@@ -139,23 +172,34 @@ Limpar cache do Laravel:
 php artisan optimize:clear
 ```
 
-Rodar os testes:
+Rodar testes:
 
 ```bash
-
 php artisan test
 ```
 
-Gerar os arquivos finais do frontend:
+Gerar arquivos finais do frontend:
 
 ```bash
 npm run build
 ```
 
+## Documentacao
+
+Os arquivos de documentacao ficam em [docs](docs/README.md).
+
+Principais arquivos:
+
+- [Documentacao essencial](docs/DOCUMENTACAO_ESSENCIAL_UNISALAS.md)
+- [Documentacao completa](docs/DOCUMENTACAO_COMPLETA_UNISALAS.md)
+- [Script do banco](docs/database_unisalas.sql)
+
+## Links Do Projeto
+
+- Video N1: https://drive.google.com/drive/home?hl=pt-br
+- Video N2: https://drive.google.com/file/d/1uIr86Z-83yYcm6SW2W9cXOUnU_RcvXvr/view?usp=drivesdk
+- Pitch: https://drive.google.com/file/d/1yBMjEVrm65vdn-6OnxqJyMwqEoQxXH_b/view?usp=sharing
+
 ## Autor
 
 Desenvolvido por Luid Casotti.
-link do video n1 https://drive.google.com/drive/home?hl=pt-br    
-link do video n2 https://drive.google.com/file/d/1uIr86Z-83yYcm6SW2W9cXOUnU_RcvXvr/view?usp=drivesdk
-link pith https://drive.google.com/file/d/1yBMjEVrm65vdn-6OnxqJyMwqEoQxXH_b/view?usp=sharing
-
