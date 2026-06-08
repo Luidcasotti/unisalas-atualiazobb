@@ -290,7 +290,10 @@ class AdminController extends Controller
     public function excluirBloco($id) { Bloco::findOrFail($id)->delete(); return back(); }
     public function excluirSala($id) { Sala::findOrFail($id)->delete(); return back(); }
     
-    public function novaSala($bloco_id) { return view('admin.blocos-salas.salas-create', ['bloco_id' => $bloco_id]); }
+    public function novaSala($bloco_id) {
+        $bloco = Bloco::findOrFail($bloco_id);
+        return view('admin.blocos-salas.salas-create', ['bloco_id' => $bloco_id, 'bloco' => $bloco]);
+    }
     public function salvarSala(Request $request) {
         Sala::create(['bloco_id' => $request->bloco_id, 'nome' => $request->nome, 'observacao' => $request->observacao]);
         return redirect()->route('admin.blocos')->with('success', 'Sala criada com sucesso!');

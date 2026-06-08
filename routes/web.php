@@ -79,7 +79,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/reservas', [AdminController::class, 'listarReservasPendentes'])->name('admin.reservas');
         Route::get('/historico-completo', [AdminController::class, 'historicoGeral'])->name('admin.historico');
         
-        // ROTA CORRIGIDA PARA CORRESPONDER AO SEU BLADE
+        // ROTA  BLADE
         Route::post('/reservas/status/{id}', [AdminController::class, 'mudarStatusReserva'])->name('reserva.mudarStatus');
         Route::post('/reservas/grupo/{grupo}/status', [AdminController::class, 'mudarStatusGrupoReservas'])->name('reserva.grupoStatus');
         Route::post('/reservas/cancelar/{id}', [AdminController::class, 'cancelarReserva'])->name('reserva.cancelar');

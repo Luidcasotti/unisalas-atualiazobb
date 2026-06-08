@@ -283,8 +283,8 @@
                 showCancelButton: true,
                 confirmButtonText: 'Sim, excluir',
                 cancelButtonText: 'Cancelar',
-                background: '#101d2f',
-                color: '#e8f2ff',
+                background: document.documentElement.dataset.theme === 'light' ? '#ffffff' : '#101d2f',
+                color: document.documentElement.dataset.theme === 'light' ? '#142235' : '#e8f2ff',
                 confirmButtonColor: '#d33',
                 cancelButtonColor: '#1d9bf0'
             });

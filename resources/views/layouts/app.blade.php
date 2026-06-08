@@ -6,6 +6,11 @@
     <title>UniSalas - Sistema de Reservas</title>
     <link href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
+    <script>
+        if (localStorage.getItem('unisalas-theme') === 'light') {
+            document.documentElement.dataset.theme = 'light';
+        }
+    </script>
     <style>
         :root {
             --brand: #1d9bf0;
@@ -18,6 +23,18 @@
             --line: #243b55;
             --text: #e8f2ff;
             --muted: #94a9c4;
+        }
+        html[data-theme="light"] {
+            --brand: #0b73c9;
+            --brand-dark: #ffffff;
+            --brand-mid: #eef6ff;
+            --brand-soft: #dceeff;
+            --accent: #0b73c9;
+            --surface: #ffffff;
+            --surface-2: #eef5fc;
+            --line: #cfdae6;
+            --text: #142235;
+            --muted: #5f7084;
         }
 
         body {
@@ -161,6 +178,188 @@
             border-radius: 50%;
             background: #f6c343;
             box-shadow: 0 0 0 6px rgba(246, 195, 67, 0.12);
+        }
+        .theme-toggle {
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.16);
+            background: rgba(255,255,255,0.08);
+            color: #e8f2ff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s ease;
+        }
+        .theme-toggle:hover {
+            background: rgba(255,255,255,0.14);
+            color: #ffffff;
+        }
+        html[data-theme="light"] body {
+            background: #f4f8fc;
+        }
+        html[data-theme="light"] #sidebar {
+            background: linear-gradient(180deg, #ffffff, #eaf4ff);
+            color: #142235;
+            box-shadow: 10px 0 28px rgba(44, 72, 104, 0.12);
+        }
+        html[data-theme="light"] #sidebar .brand-mark,
+        html[data-theme="light"] .user-profile {
+            border-color: rgba(20, 34, 53, 0.12);
+        }
+        html[data-theme="light"] #sidebar a {
+            color: #33475f;
+        }
+        html[data-theme="light"] #sidebar a:hover {
+            background: rgba(11, 115, 201, 0.1);
+            color: #0b4f8d;
+        }
+        html[data-theme="light"] #sidebar a.active {
+            background: linear-gradient(90deg, #dceeff, #edf7ff);
+            color: #074d88;
+            box-shadow: 0 8px 18px rgba(11, 115, 201, 0.14);
+        }
+        html[data-theme="light"] .theme-toggle {
+            border-color: #cfdae6;
+            background: #eef6ff;
+            color: #0b4f8d;
+        }
+        html[data-theme="light"] .main-content {
+            background:
+                radial-gradient(circle at top right, rgba(11, 115, 201, 0.10), transparent 34rem),
+                linear-gradient(180deg, #f7fbff, #edf3f9);
+        }
+        html[data-theme="light"] .page-card,
+        html[data-theme="light"] .metric-card,
+        html[data-theme="light"] .tech-panel,
+        html[data-theme="light"] .data-chip,
+        html[data-theme="light"] .list-group-item {
+            background: #ffffff;
+            color: var(--text);
+            border-color: var(--line);
+            box-shadow: 0 12px 28px rgba(44, 72, 104, 0.10);
+        }
+        html[data-theme="light"] .metric-card,
+        html[data-theme="light"] .tech-panel {
+            background: linear-gradient(180deg, #ffffff, #eef6ff);
+        }
+        html[data-theme="light"] .form-control,
+        html[data-theme="light"] .form-select {
+            background-color: #ffffff;
+            color: var(--text);
+            border-color: var(--line);
+        }
+        html[data-theme="light"] .form-control:focus,
+        html[data-theme="light"] .form-select:focus {
+            background-color: #ffffff;
+            color: var(--text);
+            border-color: var(--accent);
+        }
+        html[data-theme="light"] .form-control::placeholder {
+            color: #8392a6;
+        }
+        html[data-theme="light"] .table {
+            --bs-table-color: var(--text);
+            --bs-table-border-color: var(--line);
+        }
+        html[data-theme="light"] .table-light {
+            --bs-table-color: #142235;
+            --bs-table-bg: #eef6ff;
+            --bs-table-border-color: var(--line);
+        }
+        html[data-theme="light"] .users-accordion .accordion-item,
+        html[data-theme="light"] .infra-accordion .accordion-item,
+        html[data-theme="light"] .room-form-card,
+        html[data-theme="light"] .block-form-card {
+            background: #ffffff;
+            border-color: var(--line);
+            box-shadow: 0 16px 34px rgba(44, 72, 104, 0.12);
+        }
+        html[data-theme="light"] .users-accordion .accordion-button,
+        html[data-theme="light"] .users-accordion .accordion-button:not(.collapsed),
+        html[data-theme="light"] .infra-accordion .accordion-button,
+        html[data-theme="light"] .infra-accordion .accordion-button:not(.collapsed) {
+            background: linear-gradient(90deg, #ffffff, #edf7ff);
+            color: var(--text);
+            border-color: var(--line);
+        }
+        html[data-theme="light"] .users-accordion .accordion-body,
+        html[data-theme="light"] .infra-accordion .accordion-body,
+        html[data-theme="light"] .reservation-row,
+        html[data-theme="light"] .room-row,
+        html[data-theme="light"] .room-preview,
+        html[data-theme="light"] .block-color-preview,
+        html[data-theme="light"] .contact-card,
+        html[data-theme="light"] .recipient-option,
+        html[data-theme="light"] .chat-shell,
+        html[data-theme="light"] .bubble-in {
+            background: #ffffff;
+            color: var(--text);
+            border-color: var(--line);
+        }
+        html[data-theme="light"] .contact-card {
+            background: linear-gradient(135deg, #ffffff, #eef6ff);
+            box-shadow: 0 14px 30px rgba(44, 72, 104, 0.12);
+        }
+        html[data-theme="light"] .contact-card:hover,
+        html[data-theme="light"] .recipient-option:hover {
+            color: var(--text);
+            border-color: #8fc7f3;
+            box-shadow: 0 16px 34px rgba(44, 72, 104, 0.16);
+        }
+        html[data-theme="light"] .contact-card.has-new {
+            border-color: #d99a00;
+            box-shadow: 0 0 0 1px rgba(217, 154, 0, 0.24), 0 16px 34px rgba(44, 72, 104, 0.14);
+        }
+        html[data-theme="light"] .recipient-option {
+            background: #f8fbff;
+        }
+        html[data-theme="light"] .recipient-option:has(input:checked) {
+            background: #e5f2ff;
+            border-color: #0b73c9;
+        }
+        html[data-theme="light"] .chat-shell {
+            background:
+                linear-gradient(180deg, rgba(11, 115, 201, 0.08), transparent),
+                #f8fbff;
+        }
+        html[data-theme="light"] .input-group-text {
+            background-color: #f8fbff !important;
+            color: #0b73c9 !important;
+            border-color: var(--line) !important;
+        }
+        html[data-theme="light"] .avatar-node,
+        html[data-theme="light"] .room-form-icon,
+        html[data-theme="light"] .block-form-icon,
+        html[data-theme="light"] .contact-avatar {
+            background: #e5f2ff;
+            color: #0b73c9;
+            border-color: #b7d9f7;
+        }
+        html[data-theme="light"] .reservation-title,
+        html[data-theme="light"] .room-title,
+        html[data-theme="light"] .block-title,
+        html[data-theme="light"] .room-section-title {
+            color: #142235;
+            text-shadow: none;
+        }
+        html[data-theme="light"] .reservation-meta,
+        html[data-theme="light"] .block-helper,
+        html[data-theme="light"] .room-section-helper,
+        html[data-theme="light"] .edit-profile-box .form-text,
+        html[data-theme="light"] .room-form-card .form-text,
+        html[data-theme="light"] .block-form-card .form-text {
+            color: var(--muted);
+        }
+        html[data-theme="light"] .edit-profile-box .form-label,
+        html[data-theme="light"] .maintenance-form .form-label,
+        html[data-theme="light"] .maintenance-form .form-check-label,
+        html[data-theme="light"] .room-form-card .form-label,
+        html[data-theme="light"] .block-form-card .form-label {
+            color: var(--text);
+        }
+        html[data-theme="light"] #sidebar .pb-3 a {
+            color: #ffffff !important;
         }
         @media (max-width: 900px) {
             .app-shell {
@@ -377,8 +576,11 @@
 <body>
 <div class="d-flex app-shell">
     <nav id="sidebar">
-        <div class="brand-mark text-center">
+        <div class="brand-mark d-flex align-items-center justify-content-between gap-2">
             <h4 class="fw-bold mb-0">UniSalas</h4>
+            <button class="theme-toggle" type="button" id="themeToggle" aria-label="Alternar modo claro">
+                <i class="fas fa-sun"></i>
+            </button>
         </div>
 
         @auth
@@ -477,14 +679,48 @@
 <script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
 <script>
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = themeToggle?.querySelector('i');
+
+    function syncThemeIcon() {
+        const lightMode = document.documentElement.dataset.theme === 'light';
+        themeIcon?.classList.toggle('fa-sun', !lightMode);
+        themeIcon?.classList.toggle('fa-moon', lightMode);
+        themeToggle?.setAttribute('aria-label', lightMode ? 'Alternar modo escuro' : 'Alternar modo claro');
+    }
+
+    themeToggle?.addEventListener('click', () => {
+        const lightMode = document.documentElement.dataset.theme === 'light';
+
+        if (lightMode) {
+            delete document.documentElement.dataset.theme;
+            localStorage.setItem('unisalas-theme', 'dark');
+        } else {
+            document.documentElement.dataset.theme = 'light';
+            localStorage.setItem('unisalas-theme', 'light');
+        }
+
+        syncThemeIcon();
+    });
+
+    syncThemeIcon();
+
+    function currentThemeToastColors() {
+        const lightMode = document.documentElement.dataset.theme === 'light';
+
+        return {
+            background: lightMode ? '#ffffff' : '#101d2f',
+            color: lightMode ? '#142235' : '#e8f2ff'
+        };
+    }
+
     const Toast = Swal.mixin({
         toast: true,
         position: 'top-end',
         showConfirmButton: false,
         timer: 5000,
         timerProgressBar: true,
-        background: '#101d2f',
-        color: '#e8f2ff'
+        ...currentThemeToastColors()
     });
 
     @if(session('success'))
@@ -575,6 +811,10 @@
 @if(app()->environment('local'))
 <script>
     document.addEventListener('submit', function (event) {
+        if (event.defaultPrevented) {
+            return;
+        }
+
         const form = event.target;
 
         if (!(form instanceof HTMLFormElement) || String(form.method).toLowerCase() !== 'post') {
@@ -606,7 +846,7 @@
         }
 
         window.location.assign(url.toString());
-    }, true);
+    });
 </script>
 @endif
 </body>
