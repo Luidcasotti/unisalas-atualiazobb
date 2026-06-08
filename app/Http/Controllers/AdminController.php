@@ -314,7 +314,7 @@ class AdminController extends Controller
                     ->whereIn('status', ['pendente', 'em_analise', 'aprovada'])
                     ->update([
                         'status' => 'cancelada',
-                        'comentario_adm' => 'Bloco arquivado pelo administrador. As reservas futuras vinculadas foram canceladas para preservar o historico.',
+                        'comentario_adm' => 'Bloco excluido pelo administrador. As reservas futuras vinculadas foram canceladas para preservar o historico.',
                     ]);
 
                 Sala::whereIn('id', $salaIds)->update(['arquivado_em' => now()]);
@@ -323,7 +323,7 @@ class AdminController extends Controller
             $bloco->update(['arquivado_em' => now()]);
         });
 
-        return back()->with('success', 'Bloco arquivado. Ele saiu da lista ativa, mas o historico de reservas foi preservado.');
+        return back()->with('success', 'Bloco excluido da lista ativa. O historico de reservas foi preservado.');
     }
     public function excluirSala($id) {
         $sala = Sala::findOrFail($id);
@@ -334,13 +334,13 @@ class AdminController extends Controller
                 ->whereIn('status', ['pendente', 'em_analise', 'aprovada'])
                 ->update([
                     'status' => 'cancelada',
-                    'comentario_adm' => 'Sala arquivada pelo administrador. As reservas futuras vinculadas foram canceladas para preservar o historico.',
+                    'comentario_adm' => 'Sala excluida pelo administrador. As reservas futuras vinculadas foram canceladas para preservar o historico.',
                 ]);
 
             $sala->update(['arquivado_em' => now()]);
         });
 
-        return back()->with('success', 'Sala arquivada. Ela saiu da lista ativa, mas o historico de reservas foi preservado.');
+        return back()->with('success', 'Sala excluida da lista ativa. O historico de reservas foi preservado.');
     }
     
     public function novaSala($bloco_id) {
@@ -608,7 +608,7 @@ class AdminController extends Controller
 
         if (Sala::where('id', $request->sala_id)->whereNotNull('arquivado_em')->exists()) {
             return back()
-                ->withErrors(['sala_id' => 'Esta sala foi arquivada e nao aceita novas reservas. Escolha outra sala ativa.'])
+                ->withErrors(['sala_id' => 'Esta sala foi excluida da lista ativa e nao aceita novas reservas. Escolha outra sala ativa.'])
                 ->withInput();
         }
 

@@ -226,8 +226,8 @@
                                 <form action="{{ route('bloco.excluir', $bloco->id) }}" method="POST" class="delete-block-form" data-block-name="{{ $bloco->nome }}" data-room-count="{{ $bloco->salas->count() }}">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm block-delete-button" title="Arquivar bloco" aria-label="Arquivar bloco {{ $bloco->nome }}">
-                                        <i class="fas fa-archive me-1"></i>Arquivar
+                                    <button type="submit" class="btn btn-sm block-delete-button" title="Excluir bloco" aria-label="Excluir bloco {{ $bloco->nome }}">
+                                        <i class="fas fa-trash me-1"></i>Excluir
                                     </button>
                                 </form>
                             </div>
@@ -281,8 +281,8 @@
                                         <form action="{{ route('sala.excluir', $sala->id) }}" method="POST" class="delete-room-form" data-room-name="{{ $sala->nome }}">
                                             @csrf
                                             @method('DELETE')
-                                            <button class="btn btn-sm border room-delete-button" type="submit" title="Arquivar sala" aria-label="Arquivar sala {{ $sala->nome }}">
-                                                <i class="fas fa-archive"></i>
+                                            <button class="btn btn-sm border room-delete-button" type="submit" title="Excluir sala" aria-label="Excluir sala {{ $sala->nome }}">
+                                                <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
                                     </div>
@@ -373,10 +373,10 @@
 
             Swal.fire({
                 icon: 'warning',
-                title: 'Arquivar sala?',
+                title: 'Excluir sala?',
                 html: `A sala sairá da lista ativa e reservas futuras serão canceladas, mas o histórico será preservado.<br><span class="delete-target-name">${escapeHtml(roomName)}</span>`,
                 showCancelButton: true,
-                confirmButtonText: 'Arquivar sala',
+                confirmButtonText: 'Excluir sala',
                 cancelButtonText: 'Manter sala',
                 reverseButtons: true,
                 focusCancel: true,
@@ -409,10 +409,10 @@
 
             Swal.fire({
                 icon: 'warning',
-                title: 'Arquivar bloco?',
+                title: 'Excluir bloco?',
                 html: `O bloco e ${roomText} sairão da lista ativa. Reservas futuras serão canceladas, mas o histórico será preservado.<br><span class="delete-target-name">${escapeHtml(blockName)}</span>`,
                 showCancelButton: true,
-                confirmButtonText: 'Arquivar bloco',
+                confirmButtonText: 'Excluir bloco',
                 cancelButtonText: 'Manter bloco',
                 reverseButtons: true,
                 focusCancel: true,

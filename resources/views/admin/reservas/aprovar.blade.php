@@ -6,6 +6,20 @@
     $grupos = $reservas->groupBy(fn($reserva) => $reserva->grupo_recorrencia ?: 'reserva-' . $reserva->id);
 @endphp
 
+<style>
+    .reservation-detail-row {
+        background: #101d2f;
+        border: 1px solid var(--line);
+    }
+
+    html[data-theme="light"] .reservation-detail-row {
+        background: #ffffff;
+        color: var(--text);
+        border-color: var(--line);
+        box-shadow: 0 10px 24px rgba(44, 72, 104, 0.10);
+    }
+</style>
+
 <div class="container-fluid py-3">
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
         <div>
@@ -111,7 +125,7 @@
 
                         <div class="d-grid gap-2">
                             @foreach($grupo as $reserva)
-                                <div class="p-3 rounded" style="background:#101d2f; border:1px solid var(--line);">
+                                <div class="reservation-detail-row p-3 rounded">
                                     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
                                         <div>
                                             <div class="fw-bold">{{ date('d/m/Y', strtotime($reserva->data_reserva)) }}</div>
