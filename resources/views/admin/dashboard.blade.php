@@ -106,49 +106,8 @@
         </div>
     </div>
 
-    @php
-        $statusVisual = [
-            'aprovada' => ['label' => 'Aprovadas', 'class' => 'bg-success'],
-            'rejeitada' => ['label' => 'Rejeitadas', 'class' => 'bg-danger'],
-            'cancelada' => ['label' => 'Canceladas', 'class' => 'bg-secondary'],
-            'pendente' => ['label' => 'Pendentes', 'class' => 'bg-warning'],
-            'em_analise' => ['label' => 'Em analise', 'class' => 'bg-info'],
-        ];
-        $totalReservasResumo = max(1, collect($reservasStatusResumo)->sum());
-    @endphp
-
     <div class="row g-4 mb-4">
-        <div class="col-12 col-xl-5">
-            <div class="page-card p-4 h-100">
-                <div class="d-flex align-items-center justify-content-between mb-3">
-                    <div>
-                        <h5 class="fw-bold mb-1">Reservas por status</h5>
-                        <p class="text-muted small mb-0">Distribuicao geral das solicitacoes.</p>
-                    </div>
-                    <i class="fas fa-chart-pie text-primary"></i>
-                </div>
-
-                <div class="d-grid gap-3">
-                    @foreach($statusVisual as $status => $visual)
-                        @php
-                            $totalStatus = (int) ($reservasStatusResumo[$status] ?? 0);
-                            $percentual = round(($totalStatus / $totalReservasResumo) * 100);
-                        @endphp
-                        <div>
-                            <div class="d-flex justify-content-between small mb-1">
-                                <span>{{ $visual['label'] }}</span>
-                                <strong>{{ $totalStatus }}</strong>
-                            </div>
-                            <div class="progress" style="height: 8px; background: rgba(255,255,255,0.08);">
-                                <div class="progress-bar {{ $visual['class'] }}" style="width: {{ $percentual }}%"></div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-
-        <div class="col-12 col-xl-7">
+        <div class="col-12">
             <div class="page-card p-4 h-100">
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <div>
@@ -174,40 +133,6 @@
                         </div>
                     @empty
                         <div class="text-center text-muted py-4 tech-panel">Nenhuma solicitacao pendente.</div>
-                    @endforelse
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row g-4 mb-4">
-        <div class="col-12 col-xl-6">
-            <div class="page-card p-4 h-100">
-                <h5 class="fw-bold mb-3">Salas mais usadas</h5>
-                <div class="d-grid gap-2">
-                    @forelse($salasMaisUsadas as $sala)
-                        <div class="d-flex justify-content-between align-items-center tech-panel p-3">
-                            <span><i class="fas fa-door-open text-primary me-2"></i>{{ $sala->nome }}</span>
-                            <span class="data-chip">{{ $sala->total }} reservas</span>
-                        </div>
-                    @empty
-                        <div class="text-center text-muted py-4 tech-panel">Ainda nao ha reservas aprovadas.</div>
-                    @endforelse
-                </div>
-            </div>
-        </div>
-
-        <div class="col-12 col-xl-6">
-            <div class="page-card p-4 h-100">
-                <h5 class="fw-bold mb-3">Blocos mais usados</h5>
-                <div class="d-grid gap-2">
-                    @forelse($blocosMaisUsados as $bloco)
-                        <div class="d-flex justify-content-between align-items-center tech-panel p-3">
-                            <span><i class="fas fa-building text-info me-2"></i>{{ $bloco->nome }}</span>
-                            <span class="data-chip">{{ $bloco->total }} reservas</span>
-                        </div>
-                    @empty
-                        <div class="text-center text-muted py-4 tech-panel">Ainda nao ha reservas aprovadas.</div>
                     @endforelse
                 </div>
             </div>

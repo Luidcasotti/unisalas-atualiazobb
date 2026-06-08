@@ -79,12 +79,12 @@
         </div>
 
         <div class="col-lg-4">
-            <div id="cardDescricao" class="page-card p-4 h-100" style="display: none;">
+            <div id="cardDescricao" class="page-card p-3 room-detail-card" style="display: none;">
                 <h5 class="fw-bold mb-3"><i class="fas fa-info-circle me-2 text-primary"></i>Detalhes da sala</h5>
                 <div id="infoSala" class="lh-lg text-muted"></div>
             </div>
 
-            <div class="page-card p-4 mt-4">
+            <div class="page-card p-4 mt-3">
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <div>
                         <h5 class="fw-bold mb-1">Grade de disponibilidade</h5>
@@ -108,7 +108,7 @@
     .availability-day {
         border: 1px solid var(--line);
         border-radius: 8px;
-        background: rgba(16, 29, 47, 0.72);
+        background: var(--surface-2);
         padding: 10px;
     }
     .availability-date {
@@ -128,17 +128,19 @@
         padding: 7px 5px;
         text-align: center;
         font-size: 0.78rem;
-        background: rgba(255,255,255,0.04);
+        background: var(--surface);
         cursor: pointer;
         transition: 0.16s ease;
     }
     .availability-slot.available {
-        color: #70e4a2;
-        border-color: rgba(112, 228, 162, 0.38);
+        color: #117a3a;
+        border-color: rgba(17, 122, 58, 0.35);
+        background: rgba(25, 135, 84, 0.1);
     }
     .availability-slot.unavailable {
-        color: #ffc767;
-        border-color: rgba(255, 199, 103, 0.38);
+        color: #9a6700;
+        border-color: rgba(154, 103, 0, 0.38);
+        background: rgba(255, 193, 7, 0.12);
     }
     .availability-slot:hover {
         transform: translateY(-1px);
@@ -150,6 +152,26 @@
         padding: 18px;
         color: var(--muted);
         text-align: center;
+    }
+    .room-detail-card {
+        height: auto;
+    }
+    .room-detail-card h5 {
+        font-size: 1rem;
+        margin-bottom: 8px !important;
+    }
+    .room-detail-card #infoSala {
+        line-height: 1.45 !important;
+        font-size: 0.92rem;
+        white-space: pre-wrap;
+    }
+    html:not([data-theme="light"]) .availability-slot.available {
+        color: #70e4a2;
+        border-color: rgba(112, 228, 162, 0.38);
+    }
+    html:not([data-theme="light"]) .availability-slot.unavailable {
+        color: #ffc767;
+        border-color: rgba(255, 199, 103, 0.38);
     }
 </style>
 
@@ -194,9 +216,9 @@ function ativarRecorrencia() {
     verificar();
 }
 
-async function consultarDisponibilidade(data) {
+async function consultarDisponibilidade(data, periodoConsulta = null) {
     const sala = document.getElementById('sala_id').value;
-    const periodo = document.getElementById('periodo').value;
+    const periodo = periodoConsulta || document.getElementById('periodo').value;
 
     if (!sala || !data || !periodo) return null;
 
@@ -231,22 +253,31 @@ async function renderizarGradeDisponibilidade() {
     grade.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Carregando disponibilidade...';
 
     const hoje = new Date();
-    const dias = Array.from({ length: 7 }, (_, index) => {
+    const dias = [];
+    let offset = 0;
+
+    while (dias.length < 7 && offset < 14) {
         const data = new Date(hoje);
-        data.setDate(hoje.getDate() + index);
-        return data.toISOString().slice(0, 10);
-    });
+        data.setDate(hoje.getDate() + offset);
+
+        if (data.getDay() !== 0) {
+            dias.push(data.toISOString().slice(0, 10));
+        }
+
+        offset++;
+    }
 
     const linhas = [];
 
     for (const data of dias) {
         const slots = [];
+        const diaSemana = new Date(data + 'T00:00:00').getDay();
+        const periodosDoDia = diaSemana === 6
+            ? periodosGrade.filter((periodo) => periodo !== 'Noturno')
+            : periodosGrade;
 
-        for (const periodo of periodosGrade) {
-            const periodoAtual = document.getElementById('periodo').value;
-            document.getElementById('periodo').value = periodo;
-            const disponibilidade = await consultarDisponibilidade(data);
-            document.getElementById('periodo').value = periodoAtual;
+        for (const periodo of periodosDoDia) {
+            const disponibilidade = await consultarDisponibilidade(data, periodo);
 
             const disponivel = disponibilidade?.disponivel;
             slots.push(`

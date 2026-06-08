@@ -131,9 +131,8 @@ class AdminController extends Controller
 
             return [
                 'status' => 'em_analise',
-                'comentario_adm' => 'Conflito nesta data: ja existe uma solicitacao/reserva de ' .
-                    ($concorrente->user->name ?? 'outro professor') .
-                    ' para ' . ((optional(optional($concorrente->sala)->bloco)->nome ?? 'bloco nao informado') . ' - ' . ($concorrente->sala->nome ?? 'esta sala')) .
+                'comentario_adm' => 'Conflito nesta data: ja existe uma solicitacao/reserva para ' .
+                    ((optional(optional($concorrente->sala)->bloco)->nome ?? 'bloco nao informado') . ' - ' . ($concorrente->sala->nome ?? 'esta sala')) .
                     ' em ' . date('d/m/Y', strtotime($concorrente->data_reserva)) .
                     ' no periodo ' . $concorrente->periodo .
                     ' com status ' . $concorrente->status . '.',
@@ -147,7 +146,7 @@ class AdminController extends Controller
             return [
                 'status' => 'cancelada',
                 'comentario_adm' => 'Reserva cancelada por conflito: ' . $local .
-                    ' ja possui solicitacao/reserva de ' . ($concorrente->user->name ?? 'outro professor') .
+                    ' ja possui solicitacao/reserva registrada' .
                     ' em ' . date('d/m/Y', strtotime($data)) .
                     ' no periodo ' . $periodo . '.',
             ];
@@ -221,29 +220,6 @@ class AdminController extends Controller
     public function index() {
         $this->limparDadosAntigos();
 
-        $statusResumo = Reserva::select('status', DB::raw('count(*) as total'))
-            ->groupBy('status')
-            ->pluck('total', 'status');
-
-        $salasMaisUsadas = Sala::query()
-            ->select('salas.nome', DB::raw('count(reservas.id) as total'))
-            ->join('reservas', 'reservas.sala_id', '=', 'salas.id')
-            ->where('reservas.status', 'aprovada')
-            ->groupBy('salas.id', 'salas.nome')
-            ->orderByDesc('total')
-            ->limit(5)
-            ->get();
-
-        $blocosMaisUsados = Bloco::query()
-            ->select('blocos.nome', DB::raw('count(reservas.id) as total'))
-            ->join('salas', 'salas.bloco_id', '=', 'blocos.id')
-            ->join('reservas', 'reservas.sala_id', '=', 'salas.id')
-            ->where('reservas.status', 'aprovada')
-            ->groupBy('blocos.id', 'blocos.nome')
-            ->orderByDesc('total')
-            ->limit(5)
-            ->get();
-
         return view('admin.dashboard', [
             'totalUsuarios' => User::count(),
             'totalSalas' => Sala::whereNull('arquivado_em')->count(),
@@ -251,9 +227,6 @@ class AdminController extends Controller
             'reservasPendentes' => Reserva::where('status', 'pendente')->count(),
             'reservasAprovadas' => Reserva::where('status', 'aprovada')->count(),
             'reservasSemana' => Reserva::whereBetween('data_reserva', [now()->startOfWeek()->toDateString(), now()->endOfWeek()->toDateString()])->count(),
-            'reservasStatusResumo' => $statusResumo,
-            'salasMaisUsadas' => $salasMaisUsadas,
-            'blocosMaisUsados' => $blocosMaisUsados,
             'solicitacoesPendentesRecentes' => Reserva::whereIn('status', ['pendente', 'em_analise'])->with(['user', 'sala.bloco'])->latest()->limit(5)->get(),
             'avisos' => Aviso::latest()->get(),
             // Adicionado para o botão de mensagens no dashboard
@@ -565,7 +538,7 @@ class AdminController extends Controller
 
     public function painelProfessor() {
         $user = Auth::user();
-        $minhasReservas = Reserva::where('user_id', $user->id)->get();
+        $minhasReservas = Reserva::where('user_id', $user->id)->with('sala.bloco')->get();
         $avisos = Aviso::where('created_at', '>=', now()->subHours(24))->get();
         
         return view('professor.painel', [
@@ -582,7 +555,11 @@ class AdminController extends Controller
         $this->marcarReservasRespondidasVisualizadasPeloProfessor();
 
         return view('professor.minhas-reservas', [
-            'reservas' => Reserva::where('user_id', Auth::id())->with('sala')->latest('data_reserva')->get()
+            'reservas' => Reserva::where('user_id', Auth::id())
+                ->with('sala')
+                ->orderByDesc('created_at')
+                ->orderByDesc('data_reserva')
+                ->get()
         ]);
     }
     public function solicitarReserva(Request $request) {
@@ -612,7 +589,7 @@ class AdminController extends Controller
             'mensagem' => $reserva
                 ? ($reserva->status === 'manutencao'
                     ? $this->manutencaoAtivaParaData($reserva->sala, $request->data)
-                    : 'Indisponivel: ' . $local . ' ja possui solicitacao/reserva de ' . ($reserva->user->name ?? 'outro professor') . ' em ' . date('d/m/Y', strtotime($request->data)) . ' no periodo ' . $request->periodo . '.')
+                    : 'Indisponivel: ' . $local . ' ja possui solicitacao/reserva registrada em ' . date('d/m/Y', strtotime($request->data)) . ' no periodo ' . $request->periodo . '.')
                 : 'Sala disponivel para solicitacao.',
             'status' => $reserva?->status,
         ]);

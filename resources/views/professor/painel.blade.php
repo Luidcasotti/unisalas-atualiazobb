@@ -48,7 +48,10 @@
 
     @if($lembrete)
         <div class="alert alert-success border-0 shadow-sm">
-            <strong>Lembrete:</strong> voc&ecirc; tem uma reserva confirmada para hoje: {{ $lembrete->sala->nome ?? 'Sala' }}.
+            <strong>Lembrete:</strong> voc&ecirc; tem uma reserva confirmada para hoje:
+            {{ $lembrete->sala->bloco->nome ?? 'Bloco n&atilde;o informado' }} -
+            {{ $lembrete->sala->nome ?? 'Sala' }},
+            turno {{ $lembrete->periodo ?? 'n&atilde;o informado' }}.
         </div>
     @endif
 
