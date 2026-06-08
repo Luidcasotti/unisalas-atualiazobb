@@ -276,7 +276,7 @@ class AdminController extends Controller
     }
 
     public function listarBlocosSalas() {
-        $blocos = Bloco::with('salas')->get()->map(function ($bloco) {
+        $blocos = Bloco::with('salas')->orderBy('nome')->get()->map(function ($bloco) {
             $bloco->setRelation('salas', $this->ordenarSalas($bloco->salas));
             return $bloco;
         });

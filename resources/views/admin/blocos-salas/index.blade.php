@@ -118,6 +118,65 @@
             color: #a8bfd8;
             opacity: 1;
         }
+        .room-delete-button {
+            width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-color: rgba(255, 99, 132, 0.38) !important;
+            color: #ff7d93 !important;
+            background: rgba(255, 99, 132, 0.08) !important;
+            transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+        }
+        .room-delete-button:hover,
+        .room-delete-button:focus {
+            color: #fff !important;
+            background: #d93450 !important;
+            border-color: #ff6b85 !important;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(217, 52, 80, 0.28);
+        }
+        .block-delete-button {
+            border-color: rgba(255, 99, 132, 0.5) !important;
+            color: #ff8aa0 !important;
+            background: rgba(255, 99, 132, 0.08) !important;
+            font-weight: 700;
+            transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+        }
+        .block-delete-button:hover,
+        .block-delete-button:focus {
+            color: #fff !important;
+            background: #d93450 !important;
+            border-color: #ff6b85 !important;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(217, 52, 80, 0.28);
+        }
+        .swal2-popup.unisalas-delete-modal {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--text);
+            box-shadow: 0 28px 70px rgba(0, 0, 0, 0.42);
+        }
+        .swal2-popup.unisalas-delete-modal .swal2-title {
+            color: var(--text);
+            font-size: 1.35rem;
+        }
+        .swal2-popup.unisalas-delete-modal .swal2-html-container {
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+        .delete-target-name {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 6px 10px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.04);
+            font-weight: 700;
+        }
     </style>
 
     <div class="accordion infra-accordion d-grid gap-3" id="accordionBlocos">
@@ -164,10 +223,10 @@
                                 <a href="{{ route('bloco.editar', $bloco->id) }}" class="btn btn-sm btn-outline-primary">
                                     <i class="fas fa-edit me-1"></i>Editar bloco
                                 </a>
-                                <form action="{{ route('bloco.excluir', $bloco->id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este bloco?');">
+                                <form action="{{ route('bloco.excluir', $bloco->id) }}" method="POST" class="delete-block-form" data-block-name="{{ $bloco->nome }}" data-room-count="{{ $bloco->salas->count() }}">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <button type="submit" class="btn btn-sm block-delete-button" title="Excluir bloco" aria-label="Excluir bloco {{ $bloco->nome }}">
                                         <i class="fas fa-trash-alt me-1"></i>Excluir
                                     </button>
                                 </form>
@@ -219,10 +278,10 @@
                                         <a href="{{ route('sala.editar', $sala->id) }}" class="btn btn-sm btn-light border">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <form action="{{ route('sala.excluir', $sala->id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta sala?');">
+                                        <form action="{{ route('sala.excluir', $sala->id) }}" method="POST" class="delete-room-form" data-room-name="{{ $sala->nome }}">
                                             @csrf
                                             @method('DELETE')
-                                            <button class="btn btn-sm btn-light border text-danger">
+                                            <button class="btn btn-sm border room-delete-button" type="submit" title="Excluir sala" aria-label="Excluir sala {{ $sala->nome }}">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
@@ -294,6 +353,82 @@
     document.querySelectorAll('.maintenance-form').forEach((form) => {
         refreshMaintenanceDate(form);
         form.querySelector('.maintenance-indefinite')?.addEventListener('change', () => refreshMaintenanceDate(form));
+    });
+
+    function escapeHtml(value) {
+        const element = document.createElement('div');
+        element.textContent = value;
+        return element.innerHTML;
+    }
+
+    document.querySelectorAll('.delete-room-form').forEach((form) => {
+        form.addEventListener('submit', (event) => {
+            if (form.dataset.confirmed === 'true') {
+                return;
+            }
+
+            event.preventDefault();
+
+            const roomName = form.dataset.roomName || 'esta sala';
+
+            Swal.fire({
+                icon: 'warning',
+                title: 'Excluir sala?',
+                html: `Esta acao tambem remove as reservas vinculadas.<br><span class="delete-target-name">${escapeHtml(roomName)}</span>`,
+                showCancelButton: true,
+                confirmButtonText: 'Excluir sala',
+                cancelButtonText: 'Manter sala',
+                reverseButtons: true,
+                focusCancel: true,
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'unisalas-delete-modal',
+                    confirmButton: 'btn btn-danger px-4',
+                    cancelButton: 'btn btn-light border px-4 me-2',
+                },
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.dataset.confirmed = 'true';
+                    form.requestSubmit();
+                }
+            });
+        });
+    });
+
+    document.querySelectorAll('.delete-block-form').forEach((form) => {
+        form.addEventListener('submit', (event) => {
+            if (form.dataset.confirmed === 'true') {
+                return;
+            }
+
+            event.preventDefault();
+
+            const blockName = form.dataset.blockName || 'este bloco';
+            const roomCount = Number(form.dataset.roomCount || 0);
+            const roomText = roomCount === 1 ? '1 sala' : `${roomCount} salas`;
+
+            Swal.fire({
+                icon: 'warning',
+                title: 'Excluir bloco?',
+                html: `Esta acao tambem remove ${roomText} e todas as reservas vinculadas.<br><span class="delete-target-name">${escapeHtml(blockName)}</span>`,
+                showCancelButton: true,
+                confirmButtonText: 'Excluir bloco',
+                cancelButtonText: 'Manter bloco',
+                reverseButtons: true,
+                focusCancel: true,
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'unisalas-delete-modal',
+                    confirmButton: 'btn btn-danger px-4',
+                    cancelButton: 'btn btn-light border px-4 me-2',
+                },
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.dataset.confirmed = 'true';
+                    form.requestSubmit();
+                }
+            });
+        });
     });
 </script>
 @endsection
